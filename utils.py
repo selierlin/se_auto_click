@@ -157,7 +157,7 @@ class DriverUtil(object):
             # 隐藏滚动条
             # opt.add_argument('--hide-scrollbars')
             # 不加载图片,提速
-            # opt.add_argument('blink-settings=imagesEnabled=false')
+            opt.add_argument('blink-settings=imagesEnabled=false')
             # 不提供可视化
             # opt.add_argument('--headless')
             # 设置代理服务器地址和端口号
