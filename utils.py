@@ -6,7 +6,7 @@ from time import sleep
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as ec
-
+import config
 
 class CaseElement(Enum):
     # 用例要素
@@ -160,7 +160,9 @@ class DriverUtil(object):
             # opt.add_argument('blink-settings=imagesEnabled=false')
             # 不提供可视化
             # opt.add_argument('--headless')
-
+            # 设置代理服务器地址和端口号
+            proxy = config.conf().get("HTTP_PROXY")
+            opt.add_argument('--proxy-server=%s' % proxy)
             cls.__driver = webdriver.Chrome(chrome_options=opt)  # 运行会自动打开谷歌浏览器,上面会有提示,Chrome正受到自动化测试工具的控制
             # 将浏览器窗口最大化
             cls.__driver.maximize_window()
