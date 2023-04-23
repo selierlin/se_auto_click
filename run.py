@@ -3,11 +3,12 @@
 import utils
 from utils import DriverUtil
 from notify import Notify
+import config
 
 if __name__ == '__main__':
     # webdriver.Chrome()
     # 0.获取配置对象
-    utils.GetCases.read_excel('配置.xls')
+    utils.GetCases.read_excel(f'{config.get_root()}/配置1.xls')
     # 1.创建对象. 大写的C
     utils.GetCases.driver = DriverUtil.get_driver()
     # 手动指定浏览器驱动

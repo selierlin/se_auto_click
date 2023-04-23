@@ -36,4 +36,5 @@ def conf():
 load_config()
 
 if __name__ == '__main__':
-    load_config()
+    # load_config()
+    print(get_root())

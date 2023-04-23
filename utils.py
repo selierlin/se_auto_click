@@ -73,8 +73,9 @@ class GetCases(object):
                 if assign_sheet is not None:
                     break
 
-        except xlrd.XLRDError as e:
-            print('Read excel error:%s' % e)
+        except Exception as e:
+            print('配置.xls不存在，请根据 配置模板.xls 模板创建 配置.xls 文件')
+
             sys.exit(1)
 
     @classmethod
@@ -161,6 +162,8 @@ class DriverUtil(object):
             # opt.add_argument('--headless')
 
             cls.__driver = webdriver.Chrome(chrome_options=opt)  # 运行会自动打开谷歌浏览器,上面会有提示,Chrome正受到自动化测试工具的控制
+            # 将浏览器窗口最大化
+            cls.__driver.maximize_window()
             # cls.__driver.get(website)
             # cls.__driver.maximize_window()
             cls.__driver.implicitly_wait(5)
