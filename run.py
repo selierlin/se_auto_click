@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 # 导包
+from time import sleep
+
 import utils
 from utils import DriverUtil
 from notify import Notify
@@ -15,11 +17,13 @@ if __name__ == '__main__':
     # chrome_obj = Chrome(executable_path='驱动文件的绝对路径/chromedriver.exe')  # 运行会自动打开谷歌浏览器,上面会有提示,Chrome正受到自动化测试工具的控制
     # 2.执行任务
     try:
+        sleep(5)
         utils.GetCases.processing()
         print()
         print()
         print(utils.GetCases.allMessage)
-        Notify.sendQywx("获取成功", utils.GetCases.allMessage)
+        if config.conf().get("IS_SEND_NOTIFY"):
+            Notify.sendQywx("获取成功", utils.GetCases.allMessage)
     finally:
         # 3.关闭浏览器
         DriverUtil.quit_driver()

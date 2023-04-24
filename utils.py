@@ -1,3 +1,4 @@
+import re
 import sys
 from enum import Enum
 import xlrd
@@ -7,6 +8,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as ec
 import config
+
 
 class CaseElement(Enum):
     # 用例要素
@@ -26,9 +28,18 @@ class CaseElement(Enum):
     # 操作方式
     INPUT = 'input'
     CLICK = 'click'
+    CLICK_TEXT = 'click_text'
     TEXT = 'text'
     SLEEP = 'sleep'
     URL = 'url'
+    Cookie = 'cookie'
+    F5 = 'f5'
+
+
+def parse_cookie_str(cookie_str):
+    for item in cookie_str.split('; '):
+        key, value = item.split('=')
+        DriverUtil.get_driver().add_cookie({'name': key, 'value': value})
 
 
 class GetCases(object):
@@ -43,6 +54,7 @@ class GetCases(object):
     sheet_names = []
     sheet_names_map = {}
     allMessage = ''
+    params = {}
 
     @classmethod
     def read_excel(cls, file_name, assign_sheet=None):
@@ -107,35 +119,104 @@ class GetCases(object):
             dataset = GetCases.sheet_names_map[sheet_name]
             website = "【" + sheet_name + "】"
             for y in range(len(dataset)):
+                # sleep(1)
                 cell = dataset[y]
-                try:
-                    if cell['location'] != '':
-                        # operate = GetCases.driver.find_element(By.XPATH, cell['location'])  # 定位元素（写死XPATH）--牺牲定位效率，简化用例编写
-                        wait = WebDriverWait(GetCases.driver, 5)
-                        operate = wait.until(ec.element_to_be_clickable((By.XPATH, cell['location'])))
-                        if cell['way'] == CaseElement.INPUT.value:  # 键入
-                            operate.send_keys(cell['param'])
-                        elif cell['way'] == CaseElement.CLICK.value:  # 点击
-                            print(website, '点击', cell['step'])
-                            operate.click()
-                        elif cell['way'] == CaseElement.TEXT.value:  # 获取文本
-                            print(website, cell['step'], operate.text)
-                            GetCases.allMessage = f'{GetCases.allMessage}{website} {cell["step"]} {operate.text}\n'
-                    elif cell['way'] == CaseElement.SLEEP.value:  # 显式等待
-                        print(website, '等待 %d 秒~~~' % cell['param'])
-                        sleep(cell['param'])
-                    elif cell['way'] == CaseElement.URL.value:  # 打开链接
-                        print(website, '打开链接', cell['param'])
-                        DriverUtil.get_driver().get(cell['param'])
-                    else:
-                        raise Exception(website, '元素位置为空哦，检查一下吧~')
-                except Exception as e:
-                    print(website, cell['step'], '操作失败')
-                finally:
-                    if cell['param'] == "break":
-                        break
-                    else:
-                        continue
+                result = operate_element(website, cell)
+                if not result:
+                    break
+
+
+def wait_for_element(website, location):
+    wait = WebDriverWait(GetCases.driver, 5)
+    operate = wait.until(ec.element_to_be_clickable((By.XPATH, location)))
+    return operate
+
+
+def input_text(website, operate, text):
+    print(website, '输入内容', text)
+    operate.send_keys(text)
+
+
+def click_element(website, step, operate):
+    print(website, '点击', step)
+    operate.click()
+
+
+def get_element_text(website, step, operate):
+    text = operate.text
+    print(website, step, text)
+    GetCases.allMessage = f'{GetCases.allMessage}{website} {step} {text}\n'
+    return text
+
+
+def sleep_seconds(website, seconds):
+    print(website, f'等待 {seconds} 秒~~~')
+    sleep(int(seconds))
+
+
+def open_url(website, url):
+    print(website, '打开链接', url)
+    DriverUtil.get_driver().get(url)
+
+
+def set_cookie(website, cookie_str):
+    print(website, '设置Cookie', cookie_str)
+    parse_cookie_str(cookie_str)
+
+
+def click_element_by_link_text(website, text):
+    print(website, '点击', text)
+    DriverUtil.get_driver().find_element_by_link_text(text)
+
+
+def refresh(website, text):
+    print(website, '刷新')
+    DriverUtil.get_driver().refresh()
+
+
+def operate_element(website, cell):
+    _param = cell['param']
+    _location = cell['location']
+    _way = cell['way']
+    _step = cell['step']
+    if isinstance(_param, str):
+        match_obj = re.match(r'\$\{(.+?)}', _param)
+        if match_obj:
+            key = match_obj.group(1)
+            _param = GetCases.params.get(key)
+    try:
+        if _location:
+            operate = wait_for_element(website, _location)
+            if _way == CaseElement.INPUT.value:  # 键入
+                input_text(website, operate, _param)
+            elif _way == CaseElement.CLICK.value:  # 点击
+                click_element(website, _step, operate)
+            elif _way == CaseElement.TEXT.value:  # 获取文本
+                text = get_element_text(website, _step, operate)
+                if _param:
+                    pattern = fr'{cell["param"]}'
+                    match = re.match(pattern, text)
+                    # 将捕获组中的键值对添加到params中（不覆盖已有键值对）
+                    GetCases.params.update(match.groupdict())
+        elif _way == CaseElement.SLEEP.value:  # 显式等待
+            sleep_seconds(website, _param)
+        elif _way == CaseElement.URL.value:  # 打开链接
+            open_url(website, _param)
+        elif _way == CaseElement.Cookie.value:  # 设置Cookie
+            set_cookie(website, _param)
+        elif _way == CaseElement.CLICK_TEXT.value:  # 点击
+            click_element_by_link_text(website, _param)
+        elif _way == CaseElement.F5.value:  # 刷新
+            refresh(website, _param)
+        else:
+            raise Exception(website, '元素位置为空哦，检查一下吧~')
+    except Exception as e:
+        print(website, _step, '操作失败')
+    finally:
+        if _param == "break":
+            return False
+        else:
+            return True
 
 
 class DriverUtil(object):
@@ -163,6 +244,8 @@ class DriverUtil(object):
             # 设置代理服务器地址和端口号
             proxy = config.conf().get("HTTP_PROXY")
             opt.add_argument('--proxy-server=%s' % proxy)
+            # 设置固定域名
+            # opt.add_argument('--domain=.domain.com')
             cls.__driver = webdriver.Chrome(chrome_options=opt)  # 运行会自动打开谷歌浏览器,上面会有提示,Chrome正受到自动化测试工具的控制
             # 将浏览器窗口最大化
             cls.__driver.maximize_window()
@@ -177,3 +260,10 @@ class DriverUtil(object):
         # sleep(2)
         cls.__driver.quit()
         cls.__driver = None
+
+
+if __name__ == '__main__':
+    s = "链接: (?P<url>.+?)提取码: (?P<code>\w+)"
+    pattern = fr'{s}'
+    match = re.match(pattern, "链接: https://hifini.lanzoui.com/iw3AAkg57cf 提取码: 3byv")
+    pass
