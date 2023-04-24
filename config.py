@@ -16,7 +16,7 @@ def load_config():
     config_str = read_file(config_path)
     # 将json字符串反序列化为dict类型
     config = json.loads(config_str)
-    print("Load config success")
+    print("载入config.json")
     return config
 
 

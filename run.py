@@ -1,16 +1,21 @@
 #!/usr/bin/env python3
-# 导包
-from time import sleep
 
 import utils
 from utils import DriverUtil
 from notify import Notify
 import config
+import sys
 
+if len(sys.argv) > 1:
+    xls_path = sys.argv[1]
+else:
+    xls_path = f'{config.get_root()}/配置.xls'
+
+print(f'读取配置文件位置：{xls_path}')
 if __name__ == '__main__':
     # webdriver.Chrome()
     # 0.获取配置对象
-    utils.GetCases.read_excel(f'{config.get_root()}/配置.xls')
+    utils.GetCases.read_excel(xls_path)
     # 1.创建对象. 大写的C
     utils.GetCases.driver = DriverUtil.get_driver()
     # 手动指定浏览器驱动
