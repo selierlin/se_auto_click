@@ -1,5 +1,5 @@
 .idea
 *.log
 config.json
-配置.xls
-配置1.xls
+*.xls
+!配置模板.xls
