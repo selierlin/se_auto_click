@@ -9,7 +9,7 @@ import sys
 if len(sys.argv) > 1:
     xls_path = sys.argv[1]
 else:
-    xls_path = f'{config.get_root()}/配置.xls'
+    xls_path = f'{config.get_root()}/air.xls'
 
 print(f'读取配置文件位置：{xls_path}')
 if __name__ == '__main__':
@@ -26,9 +26,9 @@ if __name__ == '__main__':
         print()
         print()
         print(utils.GetCases.allMessage)
-        if config.conf().get("IS_SEND_NOTIFY"):
+        if config.get("IS_SEND_NOTIFY"):
             Notify.sendQywx("获取成功", utils.GetCases.allMessage)
     finally:
         # 3.关闭浏览器
-        DriverUtil.quit_driver()
+        # DriverUtil.quit_driver()
         pass

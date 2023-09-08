@@ -242,11 +242,22 @@ class DriverUtil(object):
             # 不提供可视化
             # opt.add_argument('--headless')
             # 设置代理服务器地址和端口号
-            proxy = config.conf().get("HTTP_PROXY")
+            proxy = config.get("HTTP_PROXY")
             opt.add_argument('--proxy-server=%s' % proxy)
             # 设置固定域名
             # opt.add_argument('--domain=.domain.com')
-            cls.__driver = webdriver.Chrome(chrome_options=opt)  # 运行会自动打开谷歌浏览器,上面会有提示,Chrome正受到自动化测试工具的控制
+            driver_name = config.get("chrome_path")
+            if sys.platform.startswith('win'):
+                print("当前系统是Windows")
+            elif sys.platform.startswith('linux'):
+                print("当前系统是Linux")
+            elif sys.platform.startswith('darwin'):
+                print("当前系统是Mac")
+            else:
+                print("无法确定当前系统")
+
+            cls.__driver = webdriver.Chrome(executable_path=driver_name,
+                                            chrome_options=opt)  # 运行会自动打开谷歌浏览器,上面会有提示,Chrome正受到自动化测试工具的控制
             # 将浏览器窗口最大化
             cls.__driver.maximize_window()
             # cls.__driver.get(website)

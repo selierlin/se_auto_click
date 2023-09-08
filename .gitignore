@@ -3,3 +3,4 @@
 config.json
 *.xls
 !配置模板.xls
+chromedriver*

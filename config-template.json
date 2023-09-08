@@ -1,5 +1,6 @@
 {
   "IS_SEND_NOTIFY": false,
+  "chrome_path": "",
   "PUSH_PLUS_TOKEN": "YOUR PUSH PLUS KEY",
   "QYWX_KEY": "YOUR QYWX ROBOT KEY",
   "HTTP_PROXY": "http://127.0.0.1:7890"

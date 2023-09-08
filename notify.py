@@ -8,7 +8,7 @@ class Notify(object):
         if content:
 
             url = 'https://www.pushplus.plus/send'
-            body = {"token": config.conf().get('PUSH_PLUS_TOKEN'),
+            body = {"token": config.get('PUSH_PLUS_TOKEN'),
                     "title": title,
                     "content": content}
             p = requests.post(url, data=body)
@@ -19,7 +19,7 @@ class Notify(object):
     @classmethod
     def sendQywx(self, title, content):
         if content:
-            url = f'https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key={config.conf().get("QYWX_KEY")}'
+            url = f'https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key={config.get("QYWX_KEY")}'
             body = {"msgtype": "text",
                     "text": {"content": content}}
             p = requests.post(url, json=body)
